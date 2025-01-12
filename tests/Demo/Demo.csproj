@@ -40,4 +40,9 @@
       </None>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Migrations\" />
+      <Folder Include="Scripts\" />
+    </ItemGroup>
+
 </Project>

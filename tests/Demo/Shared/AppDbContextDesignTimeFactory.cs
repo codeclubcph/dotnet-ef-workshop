@@ -12,10 +12,31 @@ namespace Tbsi.Workshop.EfCore.Demo.Shared;
 public class AppDbContextDesignTimeFactory 
     : IDesignTimeDbContextFactory<AppDbContext>
 {
+    public AppDbContextDesignTimeFactory() { }
+
+    public AppDbContextDesignTimeFactory(string connectionString, Action<string> logSink = null!)
+    {
+        this.connectionString = connectionString;
+        this.logSink = logSink;
+    }
+    
+    private readonly string connectionString = DbConstants.PostgresConnectionString;
+    private readonly Action<string> logSink = Console.WriteLine;
+    
     public AppDbContext CreateDbContext(string[] args)
     {
+        NpgsqlDataSource dataSource = new NpgsqlDataSourceBuilder(connectionString)
+            .EnableDynamicJson()
+            .Build();
+        
         var builder = new DbContextOptionsBuilder<AppDbContext>()
-            // Configure
+                .UseNpgsql(dataSource, options =>
+                {
+                    options.MigrationsHistoryTable("__EFMigrationsHistory", AppDbContext.DefaultSchema);
+                })
+                .EnableDetailedErrors()
+                .EnableSensitiveDataLogging()
+                .LogTo(logSink, LogLevel.Information)
             ;
         
         return new AppDbContext(builder.Options);

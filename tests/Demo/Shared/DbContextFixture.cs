@@ -7,7 +7,7 @@ public class DbContextFixture
 {
     public AppDbContext GetContext(string connectionString, ITestOutputHelper output)
     {
-        AppDbContext appDbContext = new AppDbContextDesignTimeFactory(/*add connectionstring and output*/)
+        AppDbContext appDbContext = new AppDbContextDesignTimeFactory(connectionString, output.WriteLine)
             .CreateDbContext(null!);
 
         appDbContext.Database.Migrate();

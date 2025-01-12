@@ -7,17 +7,19 @@ namespace Tbsi.Workshop.EfCore.Demo.Shared;
  */
 public class DatabaseFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlContainer container = null!; // <- implement
+    private readonly PostgreSqlContainer container = new PostgreSqlBuilder()
+        .WithImage("postgres:16.2")
+        .Build();
     
     public string ConnectionString => container.GetConnectionString();
     
     public Task InitializeAsync()
     {
-        throw new NotImplementedException();
+        return container.StartAsync();
     }
 
     public Task DisposeAsync()
     {
-        throw new NotImplementedException();
+        return container.StopAsync();
     }
 }

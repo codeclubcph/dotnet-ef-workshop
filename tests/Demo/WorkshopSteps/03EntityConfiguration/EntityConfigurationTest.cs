@@ -20,15 +20,20 @@ public class EntityConfigurationTest(
     [Fact]
     public void SaveAuthorWithBook()
     {
-        using AppDbContext context = contextFixture.GetContext(dbFixture.ConnectionString, outputHelper);
-        context.Database.BeginTransaction();
+        using AppDbContext context = contextFixture.GetContext(DbConstants.PostgresConnectionString, outputHelper);
         
-        // Remove the "NotImplementedException" then
-        // create and save an author with two books.
-        throw new NotImplementedException();
+        // // Remove the "NotImplementedException" then
+        // // create and save an author with two books.
         
+        var author = new Author("Nick")
+        {
+            PenNames = { "nicm" }
+        };
+        author.NewBook("Hello again", BookCategory.Fiction);
         
-        context.Database.RollbackTransaction();
+        context.Authors.Add(author);
+        
+        context.SaveChanges();
     }
 
     /// <summary>

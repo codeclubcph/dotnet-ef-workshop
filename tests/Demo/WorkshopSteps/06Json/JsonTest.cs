@@ -14,10 +14,16 @@ public class JsonTest(ITestOutputHelper outputHelper, DatabaseFixture database, 
         
         // Arrange
         // Create an author and new book 
-        
-        // Add reviews
-        throw new NotImplementedException("Add reviews to the book");
-        
+
+        var author = new Author("Nick");
+        Book book = author.NewBook("Hello", BookCategory.Fiction);
+        book.Reviews.Add(new AnonymousReview("whafa", 1));
+        book.Reviews.Add(new UserReview("whafa", 1, "Nick"));
+        book.Reviews.Add(new VerifiedBuyerReview("whafa", 1, "Nick", Guid.NewGuid()));
+
+        context.Authors.Add(author);
+        context.SaveChanges();
+
         // Save author with books
     }
 }

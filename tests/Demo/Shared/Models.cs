@@ -1,6 +1,4 @@
-using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace Tbsi.Workshop.EfCore.Demo.Shared;
@@ -12,41 +10,106 @@ namespace Tbsi.Workshop.EfCore.Demo.Shared;
  * persistence ignorant.
  */
 
-[Table("Authors")]
 public class Author
 {
-    [Key]
-    public Guid Id { get; set; }
-    
-    [Required, MaxLength(100)]
-    public string Name { get; set; }
-    
-    public List<string> PenNames { get; set; }
+    private readonly List<Book> books = [];
 
-    public List<Book> Books { get; set; }
+    public Author(string name)
+    {
+        Id = Guid.NewGuid();
+        Name = name;
+    }
+    
+    public Guid Id { get; init; }
+    
+    public string Name { get; private set; }
+
+    public List<string> PenNames { get; } = [];
+
+    public IReadOnlyList<Book> Books => books;
+
+    public ContactDetails? ContactDetails { get; set; }
+
+    public Book NewBook(string title, BookCategory category)
+    {
+        var book = new Book(title, category, [this]);
+        books.Add(book);
+        
+        return book;
+    }
 }
 
-[Table("Books")]
+public record ContactDetails(string Email);
+
+
 public class Book
 {
-    [Key]
+    private Book()
+    {
+        Id = Guid.NewGuid();
+    }
+    
+    public Book(string title, BookCategory category, List<Author> authors) : this()
+    {
+        Title = title;
+        BookCategory = category;
+        Authors = authors;
+    }
+    
     public Guid Id { get; set; }
 
-    [Required, MaxLength(200)]
     public string Title { get; set; }
     
-    [Column(TypeName = "text")]
     public BookCategory BookCategory { get; set; }
 
-    [ForeignKey(nameof(AuthorId))]
-    public Author Author { get; set; }
-    
-    [Required]
-    public Guid AuthorId { get; set; }
+    public List<Author> Authors { get; } = [];
+
+    public List<IReview> Reviews { get; } = [];
 }
+
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "@type")]
+[JsonDerivedType(typeof(AnonymousReview), nameof(AnonymousReview))]
+[JsonDerivedType(typeof(UserReview), nameof(UserReview))]
+[JsonDerivedType(typeof(VerifiedBuyerReview), nameof(VerifiedBuyerReview))]
+public interface IReview
+{
+    string Text { get; }
+    int Rating { get; }
+}
+
+public record AnonymousReview(string Text, int Rating) : IReview;
+public record UserReview(string Text, int Rating, string Username) : IReview;
+public record VerifiedBuyerReview(string Text, int Rating, string Username, Guid PurchaseId) : IReview;
+
 
 public enum BookCategory
 {
     Fiction = 0,
     Horror = 1,
+    Romance = 3,
 }
+
+
+public abstract class Employee
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; }
+}
+
+public class Editor : Employee
+{
+    public List<Book> Books { get; set; } = [];
+}
+
+
+public class Designer : Employee
+{
+    public SeniorityLevel Level { get; set; } = SeniorityLevel.Junior;
+}
+
+public enum SeniorityLevel
+{
+    Junior,
+    Senior
+}
+

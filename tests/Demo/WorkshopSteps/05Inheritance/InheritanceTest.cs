@@ -4,20 +4,24 @@ using Xunit.Abstractions;
 
 namespace Tbsi.Workshop.EfCore.Demo.WorkshopSteps._05Inheritance;
 
-public class InheritanceTest(ITestOutputHelper outputHelper, DbContextFixture database, DbContextFixture dbFixture) 
-    : IClassFixture<DatabaseFixture>
+public class InheritanceTest(ITestOutputHelper outputHelper, DatabaseFixture database, DbContextFixture dbFixture) 
+    : IClassFixture<DatabaseFixture>, IClassFixture<DbContextFixture>
 {
     [Fact]
     public void SaveEmployeesWithBooks()
     {
         using AppDbContext context = dbFixture.GetContext(DbConstants.PostgresConnectionString, outputHelper);
-        // Create author with book
 
-        throw new NotImplementedException();
-        // 1. Create a Designer and add the book to the "BookDesigns"
-        
-        // 2. Create an Editor and add an EditorNote for the Book
-        
+        context.Employees.Add(new Editor
+        {
+            Name = "Nick"
+        });
+        context.Employees.Add(new Designer
+        {
+            Name = "Nick2",
+            Level = SeniorityLevel.Junior
+        });
+
         context.SaveChanges();
     }
 
@@ -25,17 +29,25 @@ public class InheritanceTest(ITestOutputHelper outputHelper, DbContextFixture da
     public void FetchEditorObjectGraph()
     {
         using AppDbContext context = dbFixture.GetContext(DbConstants.PostgresConnectionString, outputHelper);
-        
-        throw new NotImplementedException();
-        // Fetch all employees and their object graph
+        List<Employee> emps = context.Employees
+            .TagWith("Get all employees")
+            .Include(e => ((Editor)e).Books)
+            .ThenInclude(b => b.Authors)
+            .AsSplitQuery()
+            .ToList();
     }
 
     [Fact]
     public void FetchOnlyEditors()
     {
-        using AppDbContext context = dbFixture.GetContext(DbConstants.PostgresConnectionString, outputHelper);
+        using AppDbContext context = dbFixture.GetContext(database.ConnectionString, outputHelper);
         
-        // Fetch just Editors and their object graph
-        throw new NotImplementedException();
+        List<Editor> emps = context.Employees
+            .TagWith("Get all employees")
+            .OfType<Editor>()
+            .Include(e => e.Books)
+            .ThenInclude(b => b.Authors)
+            .AsSplitQuery()
+            .ToList();
     }
 }
